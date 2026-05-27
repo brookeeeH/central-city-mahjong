@@ -111,6 +111,12 @@
       border-color: var(--green);
     }
 
+    .tab-button.locked::after {
+      content: " locked";
+      font-size: 12px;
+      font-weight: 400;
+    }
+
     .tab-panel {
       display: none;
     }
@@ -181,6 +187,24 @@
 
     .hidden {
       display: none;
+    }
+
+    .admin-lock {
+      margin-bottom: 14px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 14px;
+      background: var(--soft-gold);
+    }
+
+    .admin-lock .actions {
+      margin-top: 10px;
+    }
+
+    .admin-error {
+      color: #8d1f2f;
+      font-weight: 700;
+      min-height: 20px;
     }
 
     .segmented {
@@ -484,7 +508,7 @@
     <div class="wrap layout">
       <div class="tabs" role="tablist" aria-label="Central City Mahjong views">
         <button type="button" class="tab-button active" data-tab="member">Player RSVP</button>
-        <button type="button" class="tab-button" data-tab="admin">Admin</button>
+        <button type="button" class="tab-button locked" data-tab="admin" id="adminTabButton">Admin</button>
       </div>
 
       <section class="entry-form tab-panel active" id="member" role="tabpanel">
@@ -595,6 +619,19 @@
       <aside class="tab-panel" id="admin" role="tabpanel">
         <h2 class="print-only-title">Central City Mahjong - Server Sheet</h2>
         <h2>Coordinator / Server View</h2>
+        <div class="admin-lock" id="adminLock">
+          <label>
+            Admin passcode
+            <input type="password" id="adminPasscode" autocomplete="current-password" placeholder="Enter passcode">
+          </label>
+          <div class="actions">
+            <button type="button" id="unlockAdmin">Unlock admin</button>
+            <button type="button" class="light" id="backToPlayer">Back to player form</button>
+          </div>
+          <div class="admin-error" id="adminError" aria-live="polite"></div>
+          <p class="small">This is a light mock password for GitHub Pages. Real admin data should stay private in Google Sheets.</p>
+        </div>
+        <div id="adminContent" class="hidden">
         <div class="context">
           <div class="fact"><strong id="yesCount">3</strong><span>Confirmed yes</span></div>
           <div class="fact"><strong id="foodCount">3</strong><span>Food preorders</span></div>
@@ -715,6 +752,7 @@
         </div>
 
         <p class="source">Prairie Creek site checked for public host basics: address, hours, and menu page. League-specific small-plate text came from Brooke's provided note.</p>
+        </div>
       </aside>
     </div>
   </main>
@@ -787,12 +825,21 @@
     const extraCount = document.getElementById('extraCount');
     const copyButton = document.getElementById('copyMessage');
     const printServerSheetButton = document.getElementById('printServerSheet');
+    const adminTabButton = document.getElementById('adminTabButton');
+    const adminLock = document.getElementById('adminLock');
+    const adminContent = document.getElementById('adminContent');
+    const adminPasscode = document.getElementById('adminPasscode');
+    const unlockAdmin = document.getElementById('unlockAdmin');
+    const backToPlayer = document.getElementById('backToPlayer');
+    const adminError = document.getElementById('adminError');
     const tabButtons = document.querySelectorAll('.tab-button');
     const tabPanels = document.querySelectorAll('.tab-panel');
     const mixTablesButton = document.getElementById('mixTables');
     const printTagsButton = document.getElementById('printTags');
     const tableAssignments = document.querySelector('#tableAssignments tbody');
     const nameTags = document.getElementById('nameTags');
+    const ADMIN_PASSCODE = 'mahjong2026';
+    let adminUnlocked = false;
 
     function optionLabel(item) {
       return item.price ? `${item.name} - ${item.price}` : item.name;
@@ -898,6 +945,25 @@
       tabPanels.forEach(panel => {
         panel.classList.toggle('active', panel.id === tabId);
       });
+      if (tabId === 'admin' && !adminUnlocked) {
+        adminLock.classList.remove('hidden');
+        adminContent.classList.add('hidden');
+        setTimeout(() => adminPasscode.focus(), 0);
+      }
+    }
+
+    function unlockAdminPanel() {
+      if (adminPasscode.value === ADMIN_PASSCODE) {
+        adminUnlocked = true;
+        adminLock.classList.add('hidden');
+        adminContent.classList.remove('hidden');
+        adminTabButton.classList.remove('locked');
+        adminError.textContent = '';
+        adminPasscode.value = '';
+        return;
+      }
+      adminError.textContent = 'Passcode did not match.';
+      adminPasscode.select();
     }
 
     function makeTables() {
@@ -943,6 +1009,14 @@
         activateTab(button.dataset.tab);
       });
     });
+
+    unlockAdmin.addEventListener('click', unlockAdminPanel);
+    adminPasscode.addEventListener('keydown', keyEvent => {
+      if (keyEvent.key === 'Enter') {
+        unlockAdminPanel();
+      }
+    });
+    backToPlayer.addEventListener('click', () => activateTab('member'));
 
     playerSelect.addEventListener('change', () => {
       const isNewPlayer = playerSelect.value === '__new__';
