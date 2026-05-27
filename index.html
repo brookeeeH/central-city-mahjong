@@ -1,0 +1,977 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Central City Mahjong</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #26312f;
+      --muted: #5f6b67;
+      --line: #d8dfda;
+      --paper: #fbfaf7;
+      --panel: #ffffff;
+      --green: #2f6b57;
+      --plum: #743248;
+      --gold: #b7812d;
+      --soft-green: #edf4ef;
+      --soft-gold: #f8efdE;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      color: var(--ink);
+      background: var(--paper);
+      line-height: 1.45;
+    }
+
+    header {
+      border-bottom: 1px solid var(--line);
+      background:
+        linear-gradient(120deg, rgba(255,255,255,.95), rgba(246,249,244,.94)),
+        radial-gradient(circle at 88% 18%, rgba(183,129,45,.18), transparent 28%);
+    }
+
+    .wrap {
+      width: min(1180px, calc(100% - 32px));
+      margin: 0 auto;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) minmax(280px, .8fr);
+      gap: 24px;
+      align-items: end;
+      padding: 28px 0 22px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(34px, 5vw, 58px);
+      letter-spacing: 0;
+    }
+
+    .tagline {
+      max-width: 720px;
+      margin: 10px 0 0;
+      color: var(--muted);
+      font-size: 17px;
+    }
+
+    .event-card {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      padding: 16px;
+    }
+
+    .event-card strong {
+      display: block;
+      color: var(--green);
+      font-size: 18px;
+    }
+
+    .event-card span {
+      color: var(--muted);
+    }
+
+    main {
+      padding: 22px 0 44px;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 18px;
+      align-items: start;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+    }
+
+    .tab-button {
+      color: var(--ink);
+      background: #eef2ef;
+      border: 1px solid var(--line);
+    }
+
+    .tab-button.active {
+      color: #fff;
+      background: var(--green);
+      border-color: var(--green);
+    }
+
+    .tab-panel {
+      display: none;
+    }
+
+    .tab-panel.active {
+      display: block;
+    }
+
+    .admin-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.1fr) minmax(320px, .9fr);
+      gap: 16px;
+      align-items: start;
+    }
+
+    section,
+    aside {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 18px;
+    }
+
+    h2 {
+      margin: 0 0 14px;
+      font-size: 21px;
+    }
+
+    h3 {
+      margin: 18px 0 10px;
+      font-size: 16px;
+    }
+
+    label {
+      display: grid;
+      gap: 6px;
+      color: var(--ink);
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    input,
+    select,
+    textarea {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 10px 11px;
+      font: inherit;
+      color: var(--ink);
+      background: #fff;
+    }
+
+    textarea {
+      min-height: 78px;
+      resize: vertical;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .full {
+      grid-column: 1 / -1;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .segmented {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .choice {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 42px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: #fff;
+      cursor: pointer;
+      font-weight: 700;
+      text-align: center;
+    }
+
+    .choice input {
+      position: absolute;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .choice:has(input:checked) {
+      border-color: var(--green);
+      background: var(--soft-green);
+      color: var(--green);
+    }
+
+    .checks {
+      display: grid;
+      gap: 9px;
+    }
+
+    .check {
+      display: flex;
+      gap: 9px;
+      align-items: center;
+      font-weight: 700;
+    }
+
+    .check input {
+      width: 18px;
+      height: 18px;
+    }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 16px;
+    }
+
+    button {
+      border: 0;
+      border-radius: 6px;
+      padding: 10px 14px;
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+      color: #fff;
+      background: var(--plum);
+    }
+
+    button.secondary {
+      background: var(--green);
+    }
+
+    button.light {
+      color: var(--ink);
+      background: #eef2ef;
+      border: 1px solid var(--line);
+    }
+
+    .context {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .fact {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      padding: 12px;
+    }
+
+    .fact strong {
+      display: block;
+      color: var(--green);
+      font-size: 20px;
+    }
+
+    .fact span {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #fff;
+      font-size: 14px;
+    }
+
+    th,
+    td {
+      border: 1px solid var(--line);
+      padding: 8px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      background: var(--soft-green);
+    }
+
+    .small {
+      color: var(--muted);
+      font-size: 13px;
+      margin: 8px 0 0;
+    }
+
+    .menu-preview {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin: 10px 0 16px;
+    }
+
+    .menu-card {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 12px;
+      background: #fff;
+    }
+
+    .menu-card strong {
+      display: block;
+      color: var(--plum);
+    }
+
+    .price {
+      display: inline-block;
+      margin-top: 8px;
+      padding: 3px 7px;
+      border-radius: 999px;
+      background: var(--soft-gold);
+      color: #6e4b16;
+      font-weight: 700;
+      font-size: 12px;
+    }
+
+    .message-box {
+      margin-top: 16px;
+      border: 1px solid #ead4b9;
+      border-radius: 8px;
+      background: var(--soft-gold);
+      padding: 12px;
+    }
+
+    .message-box textarea {
+      min-height: 118px;
+      background: #fffdfa;
+    }
+
+    .source {
+      margin-top: 12px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .print-only-title {
+      display: none;
+    }
+
+    .name-tags {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .name-tag {
+      border: 1px dashed var(--line);
+      border-radius: 8px;
+      padding: 12px;
+      background: #fff;
+      min-height: 82px;
+    }
+
+    .name-tag strong {
+      display: block;
+      font-size: 18px;
+      color: var(--plum);
+    }
+
+    .name-tag span {
+      color: var(--muted);
+    }
+
+    @media (max-width: 980px) {
+      .hero,
+      .admin-grid,
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .context,
+      .menu-preview,
+      .segmented {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media print {
+      header,
+      .entry-form,
+      .tabs,
+      .message-box,
+      .actions,
+      .source {
+        display: none;
+      }
+
+      .print-only-title {
+        display: block;
+        margin: 0 0 12px;
+        font-size: 20px;
+      }
+
+      .name-tags {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      body.print-server .mixer-panel,
+      body.print-server .name-tags,
+      body.print-server #tableAssignments {
+        display: none;
+      }
+
+      body.print-tags #orders,
+      body.print-tags .context,
+      body.print-tags .league-dates,
+      body.print-tags .sheet-flow,
+      body.print-tags .server-panel {
+        display: none;
+      }
+
+      body.print-tags .mixer-panel {
+        display: block;
+      }
+
+      body {
+        background: #fff;
+      }
+
+      main {
+        padding: 0;
+      }
+
+      .wrap {
+        width: 100%;
+      }
+
+      .layout {
+        display: block;
+      }
+
+      aside,
+      section {
+        border: 0;
+        padding: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap hero">
+      <div>
+        <h1>Central City Mahjong</h1>
+        <p class="tagline">League night RSVPs, host-specific small plates, optional drink requests, group updates, and a printable server sheet.</p>
+      </div>
+      <div class="event-card">
+        <strong>Official league night</strong>
+        <span>Fourth Tuesday each month at 6:00pm</span>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="wrap layout">
+      <div class="tabs" role="tablist" aria-label="Central City Mahjong views">
+        <button type="button" class="tab-button active" data-tab="member">Player RSVP</button>
+        <button type="button" class="tab-button" data-tab="admin">Admin</button>
+      </div>
+
+      <section class="entry-form tab-panel active" id="member" role="tabpanel">
+        <h2>Player RSVP + Preorder</h2>
+        <form id="orderForm">
+          <div class="form-grid">
+            <label>
+              Player name
+              <select name="playerSelect" id="playerSelect" required>
+                <option value="">Select player</option>
+                <option>Brooke Holz</option>
+                <option>Jessica Holz</option>
+                <option>Janet</option>
+                <option>Player A</option>
+                <option>Player B</option>
+                <option>Player C</option>
+                <option>Player D</option>
+                <option>Player E</option>
+                <option>Player F</option>
+                <option>Player G</option>
+                <option>Player H</option>
+                <option>Player I</option>
+                <option>Player J</option>
+                <option>Player K</option>
+                <option>Player L</option>
+                <option value="__new__">Add new player...</option>
+              </select>
+            </label>
+
+            <label>
+              New player name
+              <input name="newPlayerName" id="newPlayerName" class="hidden" placeholder="Type player name">
+            </label>
+
+            <label>
+              Event
+              <select name="event" id="eventSelect" required>
+                <option>League Night - Tuesday, May 26, 2026 - 6:00pm - Prairie Creek</option>
+                <option>League Night - Tuesday, June 23, 2026 - 6:00pm - Prairie Creek</option>
+                <option>League Night - Tuesday, July 28, 2026 - 6:00pm - Prairie Creek</option>
+                <option>League Night - Tuesday, August 25, 2026 - 6:00pm - Prairie Creek</option>
+                <option>League Night - Tuesday, September 22, 2026 - 6:00pm - Prairie Creek</option>
+                <option>League Night - Tuesday, October 27, 2026 - 6:00pm - Prairie Creek</option>
+                <option>Open Play - date/location TBD</option>
+              </select>
+            </label>
+
+            <div class="full">
+              <span class="small">RSVP</span>
+              <div class="segmented" role="radiogroup" aria-label="RSVP">
+                <label class="choice"><input type="radio" name="rsvp" value="Yes" checked>Yes</label>
+                <label class="choice"><input type="radio" name="rsvp" value="Maybe">Maybe</label>
+                <label class="choice"><input type="radio" name="rsvp" value="No">No</label>
+              </div>
+            </div>
+
+            <label>
+              Small plate
+              <select name="food" id="foodSelect">
+                <option>Standard charcuterie mini - Price pending</option>
+                <option>Chicken salad mixer - Price pending</option>
+                <option>No food preorder</option>
+              </select>
+            </label>
+
+            <label>
+              Drink
+              <select name="drink" id="drinkSelect">
+                <option>First glass included / NA cocktail</option>
+                <option>House wine - Price pending</option>
+                <option>NA cocktail - Price pending</option>
+                <option>No drink preorder</option>
+              </select>
+            </label>
+
+            <label>
+              Table preference
+              <select name="table">
+                <option value="">No preference</option>
+                <option>Beginner table</option>
+                <option>Regular league table</option>
+                <option>Can float/sub</option>
+              </select>
+            </label>
+
+            <label class="full">
+              Notes
+              <textarea name="notes" placeholder="Allergy, no onions, arrive late, seat near a friend, etc."></textarea>
+            </label>
+
+            <div class="checks full">
+              <label class="check"><input type="checkbox" name="texts" checked>Send me league text updates</label>
+              <label class="check"><input type="checkbox" name="extraNight">Interested in extra Mahjong nights</label>
+              <label class="check"><input type="checkbox" name="bringSet">I can bring a Mahjong set</label>
+            </div>
+          </div>
+
+          <div class="actions">
+            <button type="submit">Add to mock sheet</button>
+          </div>
+        </form>
+
+        <h3>Current Host Menu Preview</h3>
+        <div class="menu-preview" id="menuPreview"></div>
+        <p class="small">Menu options are loaded from a small JavaScript config so the host, plates, drinks, and prices can be swapped for another location. Real responses should land in Google Sheets through a Google Form.</p>
+      </section>
+
+      <aside class="tab-panel" id="admin" role="tabpanel">
+        <h2 class="print-only-title">Central City Mahjong - Server Sheet</h2>
+        <h2>Coordinator / Server View</h2>
+        <div class="context">
+          <div class="fact"><strong id="yesCount">3</strong><span>Confirmed yes</span></div>
+          <div class="fact"><strong id="foodCount">3</strong><span>Food preorders</span></div>
+          <div class="fact"><strong id="extraCount">2</strong><span>Extra-night interest</span></div>
+        </div>
+
+        <div class="admin-grid">
+          <div class="server-panel">
+            <table id="orders">
+              <thead>
+                <tr>
+                  <th>Player</th>
+                  <th>Event</th>
+                  <th>Host</th>
+                  <th>RSVP</th>
+                  <th>Small Plate</th>
+                  <th>Drink</th>
+                  <th>Table</th>
+                  <th>Set?</th>
+                  <th>Notes</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Brooke Holz</td>
+                  <td>League Night - Tuesday, June 23, 2026 - 6:00pm</td>
+                  <td>Prairie Creek</td>
+                  <td>Yes</td>
+                  <td>Standard charcuterie mini - Price pending</td>
+                  <td>First glass included / NA cocktail</td>
+                  <td>Regular league table</td>
+                  <td>Yes</td>
+                  <td>Arrive early</td>
+                </tr>
+                <tr>
+                  <td>Jessica Holz</td>
+                  <td>League Night - Tuesday, June 23, 2026 - 6:00pm</td>
+                  <td>Prairie Creek</td>
+                  <td>Yes</td>
+                  <td>Chicken salad mixer - Price pending</td>
+                  <td>House wine - Price pending</td>
+                  <td>Beginner table</td>
+                  <td>No</td>
+                  <td>No onions</td>
+                </tr>
+                <tr>
+                  <td>Janet</td>
+                  <td>Open Play - date/location TBD</td>
+                  <td>Prairie Creek</td>
+                  <td>Maybe</td>
+                  <td>No food preorder</td>
+                  <td>No drink preorder</td>
+                  <td>Can float/sub</td>
+                  <td>Yes</td>
+                  <td>Needs table confirmation</td>
+                </tr>
+              </tbody>
+            </table>
+
+            <div class="actions">
+              <button type="button" class="light" id="printServerSheet">Print server sheet</button>
+              <button type="button" class="secondary" id="copyMessage">Copy update text</button>
+            </div>
+          </div>
+
+          <div class="mixer-panel">
+            <h3>Open Play Table Mixer</h3>
+            <p class="small">For non-league nights, use confirmed players to make groups of four and print simple name tags.</p>
+            <div class="actions">
+              <button type="button" id="mixTables">Randomize tables</button>
+              <button type="button" class="light" id="printTags">Print name tags</button>
+            </div>
+            <table id="tableAssignments">
+              <thead>
+                <tr>
+                  <th>Table</th>
+                  <th>Players</th>
+                  <th>Sets</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+            <div class="name-tags" id="nameTags"></div>
+          </div>
+        </div>
+
+        <h3 class="league-dates">League Dates</h3>
+        <table class="league-dates">
+          <thead>
+            <tr>
+              <th>Month</th>
+              <th>Date</th>
+              <th>Start</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>May</td><td>Tuesday, May 26, 2026</td><td>6:00pm</td></tr>
+            <tr><td>June</td><td>Tuesday, June 23, 2026</td><td>6:00pm</td></tr>
+            <tr><td>July</td><td>Tuesday, July 28, 2026</td><td>6:00pm</td></tr>
+            <tr><td>August</td><td>Tuesday, August 25, 2026</td><td>6:00pm</td></tr>
+            <tr><td>September</td><td>Tuesday, September 22, 2026</td><td>6:00pm</td></tr>
+            <tr><td>October</td><td>Tuesday, October 27, 2026</td><td>6:00pm</td></tr>
+          </tbody>
+        </table>
+
+        <h3 class="sheet-flow">Google Forms / Sheets Flow</h3>
+        <table class="sheet-flow">
+          <tbody>
+            <tr><th>Member input</th><td>Google Form linked from the web page</td></tr>
+            <tr><th>Coordinator view</th><td>Google Sheet response table</td></tr>
+            <tr><th>Host handoff</th><td>Printed sheet or emailed order summary before league night</td></tr>
+          </tbody>
+        </table>
+
+        <div class="message-box">
+          <h2>Text Update Draft</h2>
+          <textarea id="message">Central City Mahjong reminder: our official league night is the fourth Tuesday at 6:00pm. Please RSVP and add any small-plate or drink preorder before the cutoff. Prairie Creek is the current host, and menu pricing is pending for this mock.</textarea>
+        </div>
+
+        <p class="source">Prairie Creek site checked for public host basics: address, hours, and menu page. League-specific small-plate text came from Brooke's provided note.</p>
+      </aside>
+    </div>
+  </main>
+
+  <script>
+    const venues = {
+      prairieCreek: {
+        label: 'Prairie Creek',
+        fullName: 'Prairie Creek Vineyard & Winery',
+        food: [
+          {
+            name: 'Standard charcuterie mini',
+            description: 'Crackers, bread, gruyere, sharp cheddar, salami assortment, grapes, olive skewer, mixed pistachio/walnuts.',
+            price: 'Price pending'
+          },
+          {
+            name: 'Chicken salad mixer',
+            description: 'Cranberry/walnut chicken salad, crackers, mini bell peppers, grapes.',
+            price: 'Price pending'
+          },
+          {
+            name: 'No food preorder',
+            description: 'Player will order later or skip food.',
+            price: ''
+          }
+        ],
+        drinks: [
+          { name: 'First glass included / NA cocktail', price: 'Included when registration applies' },
+          { name: 'House wine', price: 'Price pending' },
+          { name: 'NA cocktail', price: 'Price pending' },
+          { name: 'No drink preorder', price: '' }
+        ]
+      },
+      alternateHost: {
+        label: 'Alternate host',
+        fullName: 'Alternate host / extra play night',
+        food: [
+          { name: 'Host appetizer option 1', description: 'Replace with the next location menu item.', price: 'Price pending' },
+          { name: 'Host appetizer option 2', description: 'Replace with the next location menu item.', price: 'Price pending' },
+          { name: 'No food preorder', description: 'Player will order later or skip food.', price: '' }
+        ],
+        drinks: [
+          { name: 'Host drink option 1', price: 'Price pending' },
+          { name: 'Host drink option 2', price: 'Price pending' },
+          { name: 'No drink preorder', price: '' }
+        ]
+      }
+    };
+
+    const events = [
+      { label: 'League Night - Tuesday, May 26, 2026 - 6:00pm - Prairie Creek', host: 'prairieCreek' },
+      { label: 'League Night - Tuesday, June 23, 2026 - 6:00pm - Prairie Creek', host: 'prairieCreek' },
+      { label: 'League Night - Tuesday, July 28, 2026 - 6:00pm - Prairie Creek', host: 'prairieCreek' },
+      { label: 'League Night - Tuesday, August 25, 2026 - 6:00pm - Prairie Creek', host: 'prairieCreek' },
+      { label: 'League Night - Tuesday, September 22, 2026 - 6:00pm - Prairie Creek', host: 'prairieCreek' },
+      { label: 'League Night - Tuesday, October 27, 2026 - 6:00pm - Prairie Creek', host: 'prairieCreek' },
+      { label: 'Open Play - date/location TBD', host: 'alternateHost' }
+    ];
+
+    const form = document.getElementById('orderForm');
+    const playerSelect = document.getElementById('playerSelect');
+    const newPlayerName = document.getElementById('newPlayerName');
+    const eventSelect = document.getElementById('eventSelect');
+    const foodSelect = document.getElementById('foodSelect');
+    const drinkSelect = document.getElementById('drinkSelect');
+    const menuPreview = document.getElementById('menuPreview');
+    const tbody = document.querySelector('#orders tbody');
+    const yesCount = document.getElementById('yesCount');
+    const foodCount = document.getElementById('foodCount');
+    const extraCount = document.getElementById('extraCount');
+    const copyButton = document.getElementById('copyMessage');
+    const printServerSheetButton = document.getElementById('printServerSheet');
+    const tabButtons = document.querySelectorAll('.tab-button');
+    const tabPanels = document.querySelectorAll('.tab-panel');
+    const mixTablesButton = document.getElementById('mixTables');
+    const printTagsButton = document.getElementById('printTags');
+    const tableAssignments = document.querySelector('#tableAssignments tbody');
+    const nameTags = document.getElementById('nameTags');
+
+    function optionLabel(item) {
+      return item.price ? `${item.name} - ${item.price}` : item.name;
+    }
+
+    function populateEvents() {
+      eventSelect.innerHTML = '';
+      events.forEach((event, index) => {
+        const option = document.createElement('option');
+        option.value = String(index);
+        option.textContent = event.label;
+        eventSelect.appendChild(option);
+      });
+    }
+
+    function currentVenue() {
+      const event = events[Number(eventSelect.value || 0)];
+      return venues[event.host];
+    }
+
+    function populateMenu() {
+      const venue = currentVenue();
+      foodSelect.innerHTML = '';
+      drinkSelect.innerHTML = '';
+      menuPreview.innerHTML = '';
+
+      venue.food.forEach(item => {
+        const option = document.createElement('option');
+        option.value = optionLabel(item);
+        option.textContent = optionLabel(item);
+        foodSelect.appendChild(option);
+
+        if (item.name !== 'No food preorder') {
+          const card = document.createElement('div');
+          card.className = 'menu-card';
+          card.innerHTML = `<strong>${item.name}</strong><span>${item.description}</span><span class="price">${item.price}</span>`;
+          menuPreview.appendChild(card);
+        }
+      });
+
+      venue.drinks.forEach(item => {
+        const option = document.createElement('option');
+        option.value = optionLabel(item);
+        option.textContent = optionLabel(item);
+        drinkSelect.appendChild(option);
+      });
+    }
+
+    function updateMetrics() {
+      const rows = Array.from(tbody.querySelectorAll('tr'));
+      yesCount.textContent = rows.filter(row => row.children[3].textContent === 'Yes').length;
+      foodCount.textContent = rows.filter(row => !row.children[4].textContent.startsWith('No food')).length;
+    }
+
+    form.addEventListener('submit', submitEvent => {
+      submitEvent.preventDefault();
+      const data = new FormData(form);
+      const selectedEvent = events[Number(data.get('event') || 0)];
+      const venue = venues[selectedEvent.host];
+      const selectedPlayer = data.get('playerSelect');
+      const playerName = selectedPlayer === '__new__' ? data.get('newPlayerName') : selectedPlayer;
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td>${playerName || ''}</td>
+        <td>${selectedEvent.label}</td>
+        <td>${venue.label}</td>
+        <td>${data.get('rsvp') || ''}</td>
+        <td>${data.get('food') || ''}</td>
+        <td>${data.get('drink') || ''}</td>
+        <td>${data.get('table') || ''}</td>
+        <td>${data.get('bringSet') ? 'Yes' : 'No'}</td>
+        <td>${data.get('notes') || ''}</td>
+      `;
+      tbody.appendChild(row);
+      extraCount.textContent = Number(extraCount.textContent) + (data.get('extraNight') ? 1 : 0);
+      updateMetrics();
+      form.reset();
+      newPlayerName.classList.add('hidden');
+      newPlayerName.required = false;
+      eventSelect.value = '0';
+      populateMenu();
+    });
+
+    copyButton.addEventListener('click', async () => {
+      const message = document.getElementById('message').value;
+      if (navigator.clipboard) {
+        await navigator.clipboard.writeText(message);
+        copyButton.textContent = 'Copied';
+        setTimeout(() => copyButton.textContent = 'Copy update text', 1400);
+      }
+    });
+
+    window.addEventListener('afterprint', () => {
+      document.body.classList.remove('print-server', 'print-tags');
+    });
+
+    function activateTab(tabId) {
+      tabButtons.forEach(tab => {
+        const isActive = tab.dataset.tab === tabId;
+        tab.classList.toggle('active', isActive);
+        tab.setAttribute('aria-selected', isActive ? 'true' : 'false');
+      });
+      tabPanels.forEach(panel => {
+        panel.classList.toggle('active', panel.id === tabId);
+      });
+    }
+
+    function makeTables() {
+      const players = Array.from(tbody.querySelectorAll('tr'))
+        .filter(row => row.children[3].textContent === 'Yes')
+        .map(row => ({
+          name: row.children[0].textContent,
+          event: row.children[1].textContent,
+          tablePreference: row.children[6].textContent,
+          bringSet: row.children[7].textContent === 'Yes'
+        }));
+
+      const shuffled = players
+        .map(player => ({ player, sort: Math.random() }))
+        .sort((a, b) => a.sort - b.sort)
+        .map(item => item.player);
+
+      tableAssignments.innerHTML = '';
+      nameTags.innerHTML = '';
+
+      for (let i = 0; i < shuffled.length; i += 4) {
+        const group = shuffled.slice(i, i + 4);
+        const tableNumber = Math.floor(i / 4) + 1;
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>Table ${tableNumber}</td>
+          <td>${group.map(player => player.name).join('<br>')}</td>
+          <td>${group.filter(player => player.bringSet).map(player => player.name).join('<br>') || 'No set marked'}</td>
+        `;
+        tableAssignments.appendChild(row);
+
+        group.forEach(player => {
+          const tag = document.createElement('div');
+          tag.className = 'name-tag';
+          tag.innerHTML = `<strong>${player.name}</strong><span>Table ${tableNumber}</span><br><span>${player.tablePreference || 'Mahjong'}</span>`;
+          nameTags.appendChild(tag);
+        });
+      }
+    }
+
+    tabButtons.forEach(button => {
+      button.addEventListener('click', () => {
+        activateTab(button.dataset.tab);
+      });
+    });
+
+    playerSelect.addEventListener('change', () => {
+      const isNewPlayer = playerSelect.value === '__new__';
+      newPlayerName.classList.toggle('hidden', !isNewPlayer);
+      newPlayerName.required = isNewPlayer;
+      if (isNewPlayer) {
+        newPlayerName.focus();
+      }
+    });
+
+    mixTablesButton.addEventListener('click', makeTables);
+    printServerSheetButton.addEventListener('click', () => {
+      document.body.classList.add('print-server');
+      document.body.classList.remove('print-tags');
+      window.print();
+    });
+    printTagsButton.addEventListener('click', () => {
+      makeTables();
+      document.body.classList.add('print-tags');
+      document.body.classList.remove('print-server');
+      window.print();
+    });
+    eventSelect.addEventListener('change', populateMenu);
+    populateEvents();
+    eventSelect.value = '0';
+    populateMenu();
+    updateMetrics();
+    makeTables();
+    activateTab('member');
+  </script>
+</body>
+</html>
